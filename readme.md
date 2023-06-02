@@ -35,6 +35,8 @@ https://github.com/nathanwang000/genAI_storyteller/assets/5128093/5109cb44-3087-
 
 the output video when using img2img:
 
+https://github.com/nathanwang000/genAI_storyteller/assets/5128093/04074a81-566b-4e49-b002-ed8e0955c56e
+
 ## (TODO) generating a story
 ## (TODO) story to images animation
 ## (TODO) training text inversion for toys and kids
