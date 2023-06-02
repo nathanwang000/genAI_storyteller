@@ -21,5 +21,5 @@ https://github.com/nathanwang000/genAI_storyteller/assets/5128093/7580440a-b90a-
 With the prompt of "tiger" and negative prompt of "worst-quality",
 the output video:
 
-https://github.com/nathanwang000/genAI_storyteller/assets/5128093/31f2b8fc-0498-4ca1-a2b1-54457726c341
+https://github.com/nathanwang000/genAI_storyteller/assets/5128093/5109cb44-3087-4eae-b659-2347d7899a0a
 
