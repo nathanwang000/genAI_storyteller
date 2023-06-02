@@ -29,9 +29,11 @@ The source/driving video:
 https://github.com/nathanwang000/genAI_storyteller/assets/5128093/7580440a-b90a-4ce4-8f7c-196569eaefcf
 
 With the prompt of "tiger" and negative prompt of "worst-quality",
-the output video:
+the output video when using txt2img:
 
 https://github.com/nathanwang000/genAI_storyteller/assets/5128093/5109cb44-3087-4eae-b659-2347d7899a0a
+
+the output video when using img2img:
 
 ## (TODO) generating a story
 ## (TODO) story to images animation
