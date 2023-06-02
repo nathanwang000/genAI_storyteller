@@ -1,0 +1,37 @@
+import cv2
+import os
+import click
+
+@click.command()
+@click.option('--images_folder', prompt=True, default='./output', help='image directory')
+@click.option('--output_video_path', prompt=True, default='output.mp4', help='output video file')
+@click.option('--fps', prompt=True, default=24, help='output video file')
+def create_video(images_folder, output_video_path, fps):
+    # Get the list of image filenames in the folder
+    image_filenames = sorted(os.listdir(images_folder),
+                             key=lambda x: int(x.split('_')[-1].split('.')[0]))
+    print(image_filenames)
+
+    # Get the dimensions of the first image
+    first_image_path = os.path.join(images_folder, image_filenames[0])
+    first_image = cv2.imread(first_image_path)
+    height, width, _ = first_image.shape
+
+    # Create a video writer object
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    video_writer = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
+
+    # Write each image to the video writer
+    for image_filename in image_filenames:
+        image_path = os.path.join(images_folder, image_filename)
+        image = cv2.imread(image_path)
+        video_writer.write(image)
+
+    # Release the video writer
+    video_writer.release()
+
+    print(f"Video created successfully: {output_video_path}")
+
+if __name__ == "__main__":
+    create_video()
+
