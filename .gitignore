@@ -1,3 +1,6 @@
+__*
+*.mp4
+tmp*
 *~
 output/
 .DS_Store
