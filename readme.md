@@ -42,7 +42,8 @@ https://github.com/nathanwang000/genAI_storyteller/assets/5128093/04074a81-566b-
 ```
 python story2illustration.py
 ```
-Currently doesn't handles negative prompt
+Currently doesn't handle negative prompt. Upon some thought, I think story creation should be interactive: that is have a chat with chatgpt to collaboratively create the story and then use stable diffusion to illustrate the story.
+
 
 Prompt: generate a kid story about a tiger
 

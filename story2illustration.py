@@ -2,7 +2,6 @@ import click, json, os, tqdm
 from lib.utils import img2img, txt2img, save_img
 from lib.utils import ChatBot
 
-
 @click.command()
 @click.option('--story_prompt', prompt=True,
               default='Once upon a time, there was a little tiger named lua',
@@ -27,7 +26,7 @@ def main(story_prompt, output_dir, system_prompt_path):
 
     print(f'Done generating the story, saved in {story_fn}, starting to generate illustrations...')
     for i, story in enumerate(tqdm.tqdm([r for r in response.split('\n') if r.strip() != ''])):
-        prompt = story # todo: turn this into keyword for SD to consume
+        prompt = story
         img = txt2img(story, "worst-quality, watermark")
         save_img(img,
                  os.path.join(output_dir, f'{i}.png'))
