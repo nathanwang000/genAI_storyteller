@@ -37,7 +37,12 @@ the output video when using img2img:
 
 https://github.com/nathanwang000/genAI_storyteller/assets/5128093/04074a81-566b-4e49-b002-ed8e0955c56e
 
-## (TODO) generating a story with illustrations
+## generating a story with illustrations
+
+```
+python story2illustration.py
+```
+Currently doesn't handles negative prompt
 
 Prompt: generate a kid story about a tiger
 

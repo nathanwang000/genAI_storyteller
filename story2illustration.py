@@ -44,7 +44,7 @@ def main(story_prompt, output_dir):
     for i, story in enumerate(r_dict):
         story_text = story['story']
         prompt = story['prompt']
-        img = txt2img(prompt, "worst-quality, watermark") # todo: customize later
+        img = txt2img(prompt, "worst-quality, watermark")
         save_img(img,
                  os.path.join(output_dir, f'{i}.png'))
 
