@@ -6,9 +6,10 @@ import click
 @click.option('--images_folder', prompt=True, default='./output', help='image directory')
 @click.option('--output_video_path', prompt=True, default='output.mp4', help='output video file')
 @click.option('--fps', prompt=True, default=24, help='output video file')
-def create_video(images_folder, output_video_path, fps):
+@click.option('--image_postfix', prompt=True, default='png', help='image postfix')
+def create_video(images_folder, output_video_path, fps, image_postfix):
     # Get the list of image filenames in the folder
-    image_filenames = sorted(os.listdir(images_folder),
+    image_filenames = sorted([fn for fn in os.listdir(images_folder) if fn.endswith(f'.{image_postfix}')],
                              key=lambda x: int(x.split('_')[-1].split('.')[0]))
     print(image_filenames)
 
