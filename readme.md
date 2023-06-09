@@ -13,7 +13,7 @@ We also plan to support
 ## video to video animation
 
 Currently we have a utility to create animation video from a driving video.
-It depends on the automatic1111 api
+It depends on the automatic1111 [api](https://github.com/Mikubill/sd-webui-controlnet/wiki/API#integrating-sdapiv12img):
 
 on mac to start a server, use
 ```bash webui.sh --no-half --api```
