@@ -3,5 +3,6 @@ __*
 *.mp4
 tmp*
 *~
+.ipynb_checkpoints
 output/
 .DS_Store
