@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 from functools import partial
 from PIL import Image
 import openai, logging
+import torchvision.transforms.functional as F
+
 from tenacity import (
     before_sleep_log,
     retry,
@@ -19,6 +21,16 @@ from tenacity import (
 
 logger = logging.getLogger(__name__)
 openai.api_key = os.environ["OPENAI_API_KEY"]
+
+def show_imgs(imgs):
+    if not isinstance(imgs, list):
+        imgs = [imgs]
+    fig, axs = plt.subplots(ncols=len(imgs), squeeze=False)
+    for i, img in enumerate(imgs):
+        img = img.detach()
+        img = F.to_pil_image(img)
+        axs[0, i].imshow(np.asarray(img))
+        axs[0, i].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
 
 def string2im(s):
     '''from string to image'''
