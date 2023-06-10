@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from functools import partial
 from PIL import Image
 import openai, logging
+import tempfile
 import torchvision.transforms.functional as F
 
 from tenacity import (
@@ -21,6 +22,17 @@ from tenacity import (
 
 logger = logging.getLogger(__name__)
 openai.api_key = os.environ["OPENAI_API_KEY"]
+
+def save_torch_image_tempfile(img, suffix='.png'):
+    '''
+    img: (3, W, H) torch tensor
+    save torch image to a temporary file and return the path
+    '''
+    img = F.to_pil_image(img)
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as f:
+        img.save(f.name)
+        filename = f.name
+    return filename
 
 def show_imgs(imgs):
     if not isinstance(imgs, list):
