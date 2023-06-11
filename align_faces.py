@@ -19,6 +19,7 @@ from deepface import DeepFace
 
 from lib.utils import show_imgs, crop_torch_im
 from lib.utils import save_torch_image_tempfile
+from lib.utils import save_torch_img
 
 def apply_theta(kpts, theta):
     return np.hstack([kpts, np.ones((len(kpts), 1))]) @ theta.T
@@ -89,11 +90,6 @@ def align_face(img, src_kpts, dst_kpts, ransac=False):
                                          theta)
     return torch.from_numpy(np_out).permute((2, 0, 1))
 
-def save_faces(face_images, output_dir):
-    for i, face in enumerate(face_images):
-        pil_face = T.ToPILImage()(face)
-        pil_face.save(os.path.join(output_dir, f'{i}.png'))
-
 def face_distance(img1, img2):
     '''
     img1: (3, H, W) tensor
@@ -113,12 +109,13 @@ def align_faces_dir(drive_image_path, image_dir, output_dir, ransac=False,
                     device='mps', kpt_radius=0,
                     width=450, height=450, crop_pad=None):
     print('currently just aligning png and jpg files...')
+    os.system(f'mkdir -p {output_dir}')    
     imps = [drive_image_path] + glob.glob(f'{image_dir}/*.png') + glob.glob(f'{image_dir}/*.png')
     imgs = []
     lmks = []
     bboxes = []
     for i, imp in enumerate(tqdm.tqdm(imps,
-                                      desc='extracting face keypoints in images')):
+                                      desc='aligning images based on keypoints')):
         im = torchvision.transforms.Resize((width, height))(
             read_image(imp, ImageReadMode.RGB))
         lmk, lmk_socres, bbox = get_key_points(
@@ -151,23 +148,19 @@ def align_faces_dir(drive_image_path, image_dir, output_dir, ransac=False,
                 torch.from_numpy(np.array(lmk)), colors="blue", radius=kpt_radius)
         )
         bboxes.append(bbox)
-                    
-    aligned_faces = []
-    for i, img in enumerate(tqdm.tqdm(imgs, desc='aligning faces')):
+
+        ###### aligning faces
         if i == 0:
-            aligned_face = img
+            aligned_face = im
         else:
             # use the first one as it is verified to be the drive image person or no need to match driver
-            aligned_face = align_face(img, lmks[i][0], lmks[0][0])
+            aligned_face = align_face(im, lmks[i][0], lmks[0][0])
         if crop_pad is not None:
             a,b,c,d = list(map(int, bboxes[0][0][:4])) # drive image
             pad = crop_pad
             a, b, c, d = max(a-pad, 0), max(b-pad, 0), min(c+pad, width), min(d+pad, height)
             aligned_face = aligned_face[:, b:d, a:c]
-        aligned_faces.append(aligned_face)
-        
-    os.system(f'mkdir -p {output_dir}')
-    save_faces(aligned_faces, output_dir)
+        save_torch_img(aligned_face, f'{output_dir}/{i}.png')
 
 @click.command()
 @click.option('--drive-image-path', '-d', required=True,

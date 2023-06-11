@@ -132,6 +132,9 @@ def _x2img(x, prompt, negative_prompt,
 def save_img(img, path):
     plt.imsave(path, img)
 
+def save_torch_img(img, path):
+    F.to_pil_image(img).save(path)
+
 img2img = partial(_x2img, 'img')
 txt2img = partial(_x2img, 'txt')
 
