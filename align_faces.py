@@ -15,8 +15,10 @@ from torchvision.utils import draw_keypoints
 from torchvision.utils import draw_bounding_boxes
 from torchvision.io import read_image
 from torchvision.io import ImageReadMode
+from deepface import DeepFace
 
-from lib.utils import show_imgs
+from lib.utils import show_imgs, crop_torch_im
+from lib.utils import save_torch_image_tempfile
 
 def apply_theta(kpts, theta):
     return np.hstack([kpts, np.ones((len(kpts), 1))]) @ theta.T
@@ -92,6 +94,16 @@ def save_faces(face_images, output_dir):
         pil_face = T.ToPILImage()(face)
         pil_face.save(os.path.join(output_dir, f'{i}.png'))
 
+def face_distance(img1, img2):
+    '''
+    img1: (3, H, W) tensor
+    img2: (3, H, W) tensor
+    '''
+    return DeepFace.verify(
+        img1_path=save_torch_image_tempfile(img1),
+        img2_path=save_torch_image_tempfile(img2),
+        enforce_detection=False)['distance']
+
 def get_key_points(im, device='mps'):
     fa = face_alignment.FaceAlignment(face_alignment.LandmarksType.TWO_D,
                                       device=device)
@@ -112,13 +124,27 @@ def align_faces_dir(drive_image_path, image_dir, output_dir, ransac=False,
         lmk, lmk_socres, bbox = get_key_points(
             im if im.shape[2] == 3 else im.permute((1,2,0)),
             device=device)
-        lmks.append(lmk)
-        if not len(bbox):
-            print(f'no face detected in {imp}')
-            if i == 0: # drive image
-                raise ValueError('no face detected in drive image')
-            continue
 
+        if i == 0: # drive image
+            if not len(bbox):
+                raise ValueError(f'no face detected in drive image {imp}')
+            elif len(bbox) > 1:
+                raise ValueError(f'multiple faces detected in drive image {imp}')
+        else: # other images
+            if len(bbox):
+                # choose the face with the lowest distance with drive image
+                distances = [face_distance(
+                    crop_torch_im(im, *bbox[i][:4]),
+                    crop_torch_im(imgs[0], *bboxes[0][0][:4]))\
+                             for i in range(len(bbox))]
+                if min(distances) > 0.4:
+                    print(f'{imp} likely not have the driver in {imps[0]}')
+                bbox = [bbox[np.argmin(distances)]]
+            if not len(bbox):
+                print(f'no driving face detected in image {imp}')
+                continue
+
+        lmks.append(lmk)
         imgs.append(
             draw_keypoints(
                 im,
@@ -131,7 +157,7 @@ def align_faces_dir(drive_image_path, image_dir, output_dir, ransac=False,
         if i == 0:
             aligned_face = img
         else:
-            # todo: try decide which detection to use, now use the first one
+            # use the first one as it is verified to be the drive image person or no need to match driver
             aligned_face = align_face(img, lmks[i][0], lmks[0][0])
         if crop_pad is not None:
             a,b,c,d = list(map(int, bboxes[0][0][:4])) # drive image
@@ -146,8 +172,8 @@ def align_faces_dir(drive_image_path, image_dir, output_dir, ransac=False,
 @click.command()
 @click.option('--drive-image-path', '-d', required=True,
               help='path to the image to align with')
-@click.option('--image_dir', '-i', help='image dir')
-@click.option('--output_dir', prompt=True, help='output dir')
+@click.option('--image_dir', '-i', required=True, help='image dir')
+@click.option('--output_dir', '-o', prompt=True, help='output dir')
 @click.option('--ransac', default=False, help='use ransac')
 @click.option('--device', default='mps', help='device to run face alignment')
 @click.option('--kpt_radius', default=0, help='radius to visualize keypoints')

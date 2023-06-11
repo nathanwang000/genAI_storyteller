@@ -23,6 +23,10 @@ from tenacity import (
 logger = logging.getLogger(__name__)
 openai.api_key = os.environ["OPENAI_API_KEY"]
 
+def crop_torch_im(im, x1, y1, x2, y2):
+    '''crop a torch image (3, W, H)'''
+    return im[:, int(y1):int(y2), int(x1):int(x2)]
+
 def save_torch_image_tempfile(img, suffix='.png'):
     '''
     img: (3, W, H) torch tensor
