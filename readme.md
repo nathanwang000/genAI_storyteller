@@ -97,3 +97,15 @@ TODO: text -> image -> image ... -> image
 The image to image should ideally consider movement.
 An simple way is to take an open source text to video model
 and use Stable Diffusion to enhance the images
+
+## (in progress) aligning faces
+
+use the function in lib/utils.py to download some images
+```
+download_ddgs_image_search('jamal crawford')
+```
+
+then align images with
+```
+python align_faces.py -d output/ddgs_images/jamal_crawford/1.jpeg -i output/ddgs_images/jamal_crawford -o output/jamal_crawford
+```

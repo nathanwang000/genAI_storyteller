@@ -5,13 +5,15 @@ import numpy as np
 import io
 import base64
 import cv2
-import matplotlib.pyplot as plt
-from functools import partial
-from PIL import Image
-from PIL.ExifTags import TAGS
 import openai, logging
 import tempfile
 import torchvision.transforms.functional as F
+import matplotlib.pyplot as plt
+
+from duckduckgo_search import DDGS
+from functools import partial
+from PIL import Image
+from PIL.ExifTags import TAGS
 
 from tenacity import (
     before_sleep_log,
@@ -130,6 +132,8 @@ def _x2img(x, prompt, negative_prompt,
     result = r['images'][0]
     return string2im(result)
 
+img2img = partial(_x2img, 'img')
+txt2img = partial(_x2img, 'txt')
 def save_img(img, path):
     plt.imsave(path, img)
 
@@ -160,9 +164,54 @@ def get_capture_time(image_path):
         return ''  # Capture time tag not found
     except (AttributeError, KeyError, IndexError):
         return ''  # Error occurred during extraction
-                    
-img2img = partial(_x2img, 'img')
-txt2img = partial(_x2img, 'txt')
+
+def download_image(url, save_path):
+    """
+    Downloads an image from a given URL and saves it to a specified path.
+
+    Args:
+        url (str): URL of the image.
+        save_path (str): Path to save the downloaded image.
+    
+    Returns:
+        bool: True if the download was successful, False otherwise.
+    """
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        
+        with open(save_path, 'wb') as file:
+            file.write(response.content)
+            
+        return True  # Download successful
+    except requests.exceptions.RequestException:
+        return False  # Error occurred during download
+
+def download_ddgs_image_search(search_term,
+                               max_images=1000,
+                               output_dir='output/ddgs_images',
+                               **kwargs):
+    os.system(f'mkdir -p {output_dir}/{"_".join(search_term.split())}')
+    i = 0
+    with DDGS() as ddgs:
+        keywords = search_term,
+        ddgs_images_gen = ddgs.images(
+            keywords,
+            **kwargs
+        )
+        progress_bar = tqdm.tqdm(total=max_images)
+        for r in ddgs_images_gen:
+            progress_bar.set_description(f"Downloading: {i}/{max_images}")
+            progress_bar.update(1)
+            i += 1
+            if i > max_images:
+                break
+            url = r['image']
+            postfix = url.split('.')[-1]
+            if postfix not in ['jpg', 'png', 'jpeg']:
+                print('unknown postfix', postfix)
+                continue
+            download_image(url, f'{output_dir}/{"_".join(search_term.split())}/{i}.{postfix}')
 
 def create_retry_decorator(max_tries=3, min_seconds=4, max_seconds=10):
     # from langchain's _create_retry_decorator

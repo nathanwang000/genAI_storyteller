@@ -108,9 +108,13 @@ def get_key_points(im, device='mps'):
 def align_faces_dir(drive_image_path, image_dir, output_dir, ransac=False,
                     device='mps', kpt_radius=0,
                     width=450, height=450, crop_pad=None):
-    print('currently just aligning png and jpg files...')
-    os.system(f'mkdir -p {output_dir}')    
-    imps = [drive_image_path] + glob.glob(f'{image_dir}/*.png') + glob.glob(f'{image_dir}/*.png')
+    os.system(f'mkdir -p {output_dir}')
+    imps = [drive_image_path]
+    print('Aligning the following formats:')
+    for postfix in ['jpg', 'png', 'jpeg']:
+        print('\t', postfix)
+        imps += glob.glob(os.path.join(image_dir, f'*.{postfix}'))
+        
     imgs = []
     lmks = []
     bboxes = []
@@ -123,12 +127,12 @@ def align_faces_dir(drive_image_path, image_dir, output_dir, ransac=False,
             device=device)
 
         if i == 0: # drive image
-            if not len(bbox):
+            if bbox is None or not len(bbox):
                 raise ValueError(f'no face detected in drive image {imp}')
             elif len(bbox) > 1:
                 raise ValueError(f'multiple faces detected in drive image {imp}')
         else: # other images
-            if len(bbox):
+            if bbox is not None and len(bbox):
                 # choose the face with the lowest distance with drive image
                 distances = [face_distance(
                     crop_torch_im(im, *bbox[i][:4]),
@@ -137,7 +141,7 @@ def align_faces_dir(drive_image_path, image_dir, output_dir, ransac=False,
                 if min(distances) > 0.4:
                     print(f'{imp} likely not have the driver in {imps[0]}')
                 bbox = [bbox[np.argmin(distances)]]
-            if not len(bbox):
+            if bbox is None or not len(bbox):
                 print(f'no driving face detected in image {imp}')
                 continue
 
@@ -154,7 +158,7 @@ def align_faces_dir(drive_image_path, image_dir, output_dir, ransac=False,
             aligned_face = im
         else:
             # use the first one as it is verified to be the drive image person or no need to match driver
-            aligned_face = align_face(im, lmks[i][0], lmks[0][0])
+            aligned_face = align_face(im, lmk[0], lmks[0][0])
         if crop_pad is not None:
             a,b,c,d = list(map(int, bboxes[0][0][:4])) # drive image
             pad = crop_pad
