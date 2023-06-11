@@ -132,12 +132,20 @@ def align_faces_dir(drive_image_path, image_dir, output_dir, ransac=False,
             elif len(bbox) > 1:
                 raise ValueError(f'multiple faces detected in drive image {imp}')
         else: # other images
+            # TODO: figure out when bbox is None
+            if bbox is None:
+                import pdb; pdb.set_trace()
+                
             if bbox is not None and len(bbox):
                 # choose the face with the lowest distance with drive image
-                distances = [face_distance(
-                    crop_torch_im(im, *bbox[i][:4]),
-                    crop_torch_im(imgs[0], *bboxes[0][0][:4]))\
-                             for i in range(len(bbox))]
+                try:
+                    distances = [face_distance(
+                        crop_torch_im(im, *bbox[i][:4]),
+                        crop_torch_im(imgs[0], *bboxes[0][0][:4]))\
+                                 for i in range(len(bbox))]
+                except: # TODO: debug
+                    import pdb; pdb.set_trace()
+                    
                 if min(distances) > 0.4:
                     print(f'{imp} likely not have the driver in {imps[0]}')
                 bbox = [bbox[np.argmin(distances)]]

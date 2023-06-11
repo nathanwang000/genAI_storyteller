@@ -102,10 +102,10 @@ and use Stable Diffusion to enhance the images
 
 use the function in lib/utils.py to download some images
 ```
-download_ddgs_image_search('jamal crawford')
+download_ddgs_image_search('jakie chen')
 ```
 
 then align images with
 ```
-python align_faces.py -d output/ddgs_images/jamal_crawford/1.jpeg -i output/ddgs_images/jamal_crawford -o output/jamal_crawford
+python align_faces.py -d output/ddgs_images/jakie_chen/2.jpg -i output/ddgs_images/jakie_chen -o output/jakie_chen
 ```
