@@ -8,6 +8,7 @@ import cv2
 import matplotlib.pyplot as plt
 from functools import partial
 from PIL import Image
+from PIL.ExifTags import TAGS
 import openai, logging
 import tempfile
 import torchvision.transforms.functional as F
@@ -135,6 +136,31 @@ def save_img(img, path):
 def save_torch_img(img, path):
     F.to_pil_image(img).save(path)
 
+def get_capture_time(image_path):
+    """
+    Extracts the capture time from the metadata of an image.
+    
+    Args:
+        image_path (str): Path to the image file.
+
+    Returns:
+        str: Capture time in a human-readable format (e.g., "2023-06-02 15:30:45").
+        "": If capture time is not found or an error occurs.
+    """
+    try:
+        image = Image.open(image_path)
+        exif_data = image._getexif()
+
+        # Iterate over the EXIF data and search for the capture time tag
+        for tag_id, value in exif_data.items():
+            tag_name = TAGS.get(tag_id, tag_id)
+            if tag_name == 'DateTimeOriginal':
+                return value
+
+        return ''  # Capture time tag not found
+    except (AttributeError, KeyError, IndexError):
+        return ''  # Error occurred during extraction
+                    
 img2img = partial(_x2img, 'img')
 txt2img = partial(_x2img, 'txt')
 
