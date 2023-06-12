@@ -113,4 +113,6 @@ python align_faces.py -d output/ddgs_images/jakie_chen/2.jpg -i output/ddgs_imag
 
 https://github.com/nathanwang000/genAI_storyteller/assets/5128093/3e295acc-807f-4b5b-8e44-e4b0da8688a5
 
+use the "-t" setting to filter out disimilar images for better result (default set to None: e.g., no filtering); Good value is something smaller than 0.4
+
 

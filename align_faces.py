@@ -107,7 +107,8 @@ def get_key_points(im, device='mps'):
         
 def align_faces_dir(drive_image_path, image_dir, output_dir, ransac=False,
                     device='mps', kpt_radius=0,
-                    width=450, height=450, crop_pad=None):
+                    width=450, height=450, crop_pad=None,
+                    threshold=None):
     os.system(f'mkdir -p {output_dir}')
     imps = [drive_image_path]
     print('Aligning the following formats:')
@@ -147,8 +148,11 @@ def align_faces_dir(drive_image_path, image_dir, output_dir, ransac=False,
                     crop_torch_im(im, *bbox[i][:4]),
                     crop_torch_im(imgs[0], *bboxes[0][0][:4]))\
                                  for i in range(len(bbox))]
-                if min(distances) > 0.4:
+                if min(distances) > 0.4: # default threshold for DeepFace
                     print(f'{imp} likely not have the driver in {imps[0]}')
+                if threshold is not None and min(distances) > threshold:
+                    print(f'{imp} with cosine distanc of {min(distances):.2f} with driver image did not pass the threshold of {threshold}, skipping')
+                    continue
                 bbox = [bbox[np.argmin(distances)]]
             if bbox is None or not len(bbox):
                 print(f'no face detected in image {imp}')
@@ -186,14 +190,17 @@ def align_faces_dir(drive_image_path, image_dir, output_dir, ransac=False,
 @click.option('--width', default=450, help='width of aligned faces')
 @click.option('--height', default=450, help='height of aligned faces')
 @click.option('--crop_pad', default=None, type=int, help='pad to crop faces')
+@click.option('--threshold', '-t', default=None, type=float,
+              help='threshold to filter out faces (None means no filtering)')
 def main(drive_image_path, image_dir,
          output_dir, ransac,
          device, kpt_radius,
-         width, height, crop_pad):
+         width, height, crop_pad, threshold):
     align_faces_dir(drive_image_path, image_dir,
                     output_dir, ransac,
                     device, kpt_radius,
-                    width, height, crop_pad)
+                    width, height, crop_pad,
+                    threshold)
     
 if __name__ == '__main__':
     main()
