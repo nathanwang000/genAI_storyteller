@@ -120,37 +120,38 @@ def align_faces_dir(drive_image_path, image_dir, output_dir, ransac=False,
     bboxes = []
     for i, imp in enumerate(tqdm.tqdm(imps,
                                       desc='aligning images based on keypoints')):
-        im = torchvision.transforms.Resize((width, height))(
-            read_image(imp, ImageReadMode.RGB))
+
+        ####### load images and extract keypoints
+        try:
+            im = torchvision.transforms.Resize((width, height))(
+                read_image(imp, ImageReadMode.RGB))
+        except Exception as e:
+            print('Error loading image (could be locked):', imp)
+            print(e)
+            continue
+        
         lmk, lmk_socres, bbox = get_key_points(
             im if im.shape[2] == 3 else im.permute((1,2,0)),
             device=device)
 
+        ####### applying exclusion logics
         if i == 0: # drive image
             if bbox is None or not len(bbox):
                 raise ValueError(f'no face detected in drive image {imp}')
             elif len(bbox) > 1:
                 raise ValueError(f'multiple faces detected in drive image {imp}')
         else: # other images
-            # TODO: figure out when bbox is None
-            if bbox is None:
-                import pdb; pdb.set_trace()
-                
             if bbox is not None and len(bbox):
                 # choose the face with the lowest distance with drive image
-                try:
-                    distances = [face_distance(
-                        crop_torch_im(im, *bbox[i][:4]),
-                        crop_torch_im(imgs[0], *bboxes[0][0][:4]))\
+                distances = [face_distance(
+                    crop_torch_im(im, *bbox[i][:4]),
+                    crop_torch_im(imgs[0], *bboxes[0][0][:4]))\
                                  for i in range(len(bbox))]
-                except: # TODO: debug
-                    import pdb; pdb.set_trace()
-                    
                 if min(distances) > 0.4:
                     print(f'{imp} likely not have the driver in {imps[0]}')
                 bbox = [bbox[np.argmin(distances)]]
             if bbox is None or not len(bbox):
-                print(f'no driving face detected in image {imp}')
+                print(f'no face detected in image {imp}')
                 continue
 
         lmks.append(lmk)

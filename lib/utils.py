@@ -27,8 +27,10 @@ logger = logging.getLogger(__name__)
 openai.api_key = os.environ["OPENAI_API_KEY"]
 
 def crop_torch_im(im, x1, y1, x2, y2):
-    '''crop a torch image (3, W, H)'''
-    return im[:, int(y1):int(y2), int(x1):int(x2)]
+    '''crop a torch image (3, H, W)'''
+    x1, x2 = int(max(min(x1, x2, im.shape[2]), 0)), int(min(max(x1, x2, 0), im.shape[2]))
+    y1, y2 = int(max(min(y1, y2, im.shape[1]), 0)), int(min(max(y1, y2, 0), im.shape[1]))
+    return im[:, y1:y2, x1:x2]
 
 def save_torch_image_tempfile(img, suffix='.png'):
     '''
