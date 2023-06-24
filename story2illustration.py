@@ -26,7 +26,12 @@ def main(story_prompt, output_dir, system_prompt_path):
 
     print(f'Done generating the story, saved in {story_fn}, starting to generate illustrations...')
     for i, story in enumerate(tqdm.tqdm([r for r in response.split('\n') if r.strip() != ''])):
-        prompt = story
+        prompt = chatbot(f'Summarize the following paragraph you just created in one sentence, replace all references to the characters by their name: \n---BEGIN_PROMPT---\n{story}\n---END_PROMPT---\n\nOutput:')
+        # append prompt to story_fn
+        with open(story_fn, 'a') as f:
+            f.write(f'\n\nprompt: {prompt}')
+            
+        prompt = story # TODO: currently the chatgpt prompt is unused, later we will introduce character generation to prompt using dreambooth
         img = txt2img(story, "worst-quality, watermark")
         save_img(img,
                  os.path.join(output_dir, f'{i}.png'))
