@@ -85,7 +85,7 @@ def video2frames(video_path, n_frames=0):
             break
 
         # Append the frame to the list
-        frames.append(frame)
+        frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
     # Release the video capture object
     video.release()
