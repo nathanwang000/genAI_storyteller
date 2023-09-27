@@ -100,6 +100,7 @@ def _x2img(x, prompt, negative_prompt,
            init_im=None, control_im=None,
            denoising_strength=0.3,
            steps=10,
+           width=848, height=480,
            url='http://127.0.0.1:7860'):
     '''
     x is either txt or img
@@ -111,6 +112,8 @@ def _x2img(x, prompt, negative_prompt,
         "negative_prompt": negative_prompt,
         "sampler_name": "Euler",
         "steps": steps,
+        'width': width,
+        'height': height,
         "denoising_strength": denoising_strength, # default 0.75, lower means less noise
     }
     if init_im is not None:
