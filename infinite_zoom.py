@@ -34,10 +34,11 @@ def zoom():
     os.makedirs(output_dir, exist_ok=True)    
     # prompt = 'bird singing on a tree, hd, cinematic lighting'
     # prompt = 'cyberpunk city, tokyo'
-    prompt = 'galaxy, stars, cinematic, hd, epic'
+    prompt = 'galaxy, stars, cinematic, colorful, mgical girl, hd'
     negative_prompt = 'ugly, disfigured, watermark'
-    min_ds, max_ds = 0.3, 0.6
-    n_steps = 60
+    min_ds, max_ds = 0.4, 0.8
+    margin = 0.02
+    n_steps = 300
 
     denoising_strength = min_ds
     img_diffs = []
@@ -49,7 +50,7 @@ def zoom():
         else:
             # zoom in img
             h, w, _ = img.shape
-            nh, nw = max(int(0.05 * h), 1), max(int(0.05 * w), 1)
+            nh, nw = max(int(margin * h), 1), max(int(margin * w), 1)
             desired_size = h, w
 
             # size down the next frame
@@ -65,9 +66,15 @@ def zoom():
                 # dynamically adjust denoising_strength
                 img_diffs.append((abs(img-img2)).mean())
                 progress_bar.set_description(f'img diff: {img_diffs[-1]:.2f}, denoise: {denoising_strength:.2f}')
-                if img_diffs[-1] < 0.8 * max(img_diffs[-10:]):
+                ratio = img_diffs[-1] / max(img_diffs)
+                if ratio < 0.8:
                     denoising_strength = min(1.2 * denoising_strength, max_ds)
-                elif img_diffs[-1] > 1.2 * max(img_diffs[-10:]):
+                    # # add random white spots to img2; maybe later add to latent space
+                    # n = int(30 * (1 - ratio))
+                    # for _ in range(n):
+                    #     x, y = np.random.randint(0, h), np.random.randint(0, w)
+                    #     img2[x:x+nh,y:y+nw,:] = 255
+                if ratio > 1.2:
                     denoising_strength = max(0.8 * denoising_strength, min_ds)
                 img = img2
 
