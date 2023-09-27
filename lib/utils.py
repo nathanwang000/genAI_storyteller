@@ -98,6 +98,8 @@ def video2frames(video_path, n_frames=0):
 
 def _x2img(x, prompt, negative_prompt,
            init_im=None, control_im=None,
+           denoising_strength=0.3,
+           steps=10,
            url='http://127.0.0.1:7860'):
     '''
     x is either txt or img
@@ -108,11 +110,11 @@ def _x2img(x, prompt, negative_prompt,
         "prompt": prompt,
         "negative_prompt": negative_prompt,
         "sampler_name": "Euler",
-        "steps": 10,
-        "denoising_strength": 0.3, # default 0.75, lower means less noise
+        "steps": steps,
+        "denoising_strength": denoising_strength, # default 0.75, lower means less noise
     }
     if init_im is not None:
-        payload.update({"init_images": [im2string(init_im)]})
+        payload.update({"init_images": [im2string(init_im[:,:,::-1])]}) # convert to bgr b/c it will invert back
     if control_im is not None:
         payload.update({
             "alwayson_scripts": {
