@@ -43,18 +43,24 @@ def get_interesting_patch(img, nh, nw, center=True, reference_img=None):
                 max_var = img_var
                 max_i, max_j = _i, _j
     return img[max_i:max_i+h-2*nh,max_j:max_j+w-2*nw,:]
-    
-def zoom():
-    output_dir = 'output/test'
+
+@click.command()
+@click.option('--output_dir', '-o', default='output/test', help='output directory')
+@click.option('--prompt', '-p', default='galaxy, stars, cinematic, colorful, mgical girl, hd',
+              type=str,
+              help='prompt for generating the image')
+@click.option('--negative_prompt', '-np', default='ugly, disfigured, watermark',
+              type=str,
+              help='negative prompt')
+@click.option('--margin', '-m', default=0.02, type=float, help='margin size for cropping/zooming')
+@click.option('--n_steps', '-n', default=100, type=int, help='number of images to generate')
+@click.otpion('--use_reference', flag_value=True, help='use reference image to guide where to zoom, o/w zoom to the center')
+@click.option('--min_ds', default=0.4, type=float, help='minimum denoising strength, higher means ignoring image more')
+@click.option('--max_ds', default=0.8, type=float, help='maximum denoising strength, higher means ignoring image more')
+def zoom(output_dir, prompt, negative_prompt, margin, n_steps, use_reference, min_ds, max_ds):
     os.makedirs(output_dir, exist_ok=True)    
     # prompt = 'bird singing on a tree, hd, cinematic lighting'
     # prompt = 'cyberpunk city, tokyo'
-    prompt = 'galaxy, stars, cinematic, colorful, mgical girl, hd'
-    negative_prompt = 'ugly, disfigured, watermark'
-    min_ds, max_ds = 0.4, 0.8
-    margin = 0.02
-    n_steps = 300
-    use_reference = False
 
     denoising_strength = min_ds
     img_diffs = []
