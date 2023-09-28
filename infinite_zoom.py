@@ -1,28 +1,43 @@
 # todo: make it more generalizable
-# todo: add interesting shot chasing shots
+# todo: add interesting shot chasing shots: match on gram's matrix
 import os
 import tqdm
 import numpy as np
 from lib.utils import txt2img, img2img, save_img
 from skimage.transform import resize
 
-def get_interesting_patch(img, nh, nw, center=True):
+def gram_matrix(im):
+    '''
+    assumes the last dimension is the channel
+    '''
+    c = im.reshape(-1, im.shape[-1])
+    return c.T@c
+
+def get_interesting_patch(img, nh, nw, center=True, reference_img=None):
     '''
     nh, nw: margin size on height and width
     '''
     h, w, _ = img.shape
 
-    if center:
+    if reference_img is not None:
+        # compute gram's matrix # could do a color dictionary matching instead
+        g = gram_matrix(reference_img)
+        
+    if center and reference_img is None:
         return img[nh:-nh,nw:-nw,:]
-      
-    max_var = 0
+
+    max_var = -float('inf')
     max_i, max_j = 0, 0
-    for _i in range(0, min(nh*3, h-2*nh), nh):
-        for _j in range(0, min(nw*3, w-2*nw), nw):
+    for _i in range(0, min(nh*5, h-2*nh), nh):
+        for _j in range(0, min(nw*5, w-2*nw), nw):
             # todo: optimize this and add path regularization
             # get the most interesting patch
             # TODO: calculate added variance (new point distance to its closest point)
-            img_var = np.var(img[_i:_i+h-2*nh,_j:_j+w-2*nw,:])
+            patch = img[_i:_i+h-2*nh,_j:_j+w-2*nw,:]
+            if reference_img is None:
+                img_var = np.var(patch)
+            else:
+                img_var = -((g - gram_matrix(patch))**2).mean() # want to minimize l2
     
             if img_var > max_var:
                 max_var = img_var
@@ -39,6 +54,7 @@ def zoom():
     min_ds, max_ds = 0.4, 0.8
     margin = 0.02
     n_steps = 300
+    use_reference = False
 
     denoising_strength = min_ds
     img_diffs = []
@@ -46,7 +62,8 @@ def zoom():
     progress_bar = tqdm.tqdm(range(n_steps), desc='')
     for i in progress_bar:
         if i == 0:
-            img = txt2img(prompt, negative_prompt)
+            init_img = txt2img(prompt, negative_prompt)
+            img = init_img
         else:
             # zoom in img
             h, w, _ = img.shape
@@ -54,7 +71,7 @@ def zoom():
             desired_size = h, w
 
             # size down the next frame
-            img = get_interesting_patch(img, nh, nw)
+            img = get_interesting_patch(img, nh, nw, reference_img=init_img if use_reference else None)
             
             # resize img back; resize is float so we need to map back to uint8
             img = (resize(img, desired_size, anti_aliasing=True) * 255).astype(np.uint8)
