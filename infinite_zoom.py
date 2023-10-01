@@ -1,6 +1,5 @@
-# todo: make it more generalizable
-# todo: add interesting shot chasing shots: match on gram's matrix
 import os
+import click
 import tqdm
 import numpy as np
 from lib.utils import txt2img, img2img, save_img
@@ -13,14 +12,16 @@ def gram_matrix(im):
     c = im.reshape(-1, im.shape[-1])
     return c.T@c
 
-def get_interesting_patch(img, nh, nw, center=True, reference_img=None):
+def get_interesting_patch(img, nh, nw, center=True,
+                          reference_img=None, n_windows=5):
     '''
     nh, nw: margin size on height and width
+    n_windows: number of windows**2 to try
     '''
     h, w, _ = img.shape
 
     if reference_img is not None:
-        # compute gram's matrix # could do a color dictionary matching instead
+        # compute gram's matrix
         g = gram_matrix(reference_img)
         
     if center and reference_img is None:
@@ -28,11 +29,11 @@ def get_interesting_patch(img, nh, nw, center=True, reference_img=None):
 
     max_var = -float('inf')
     max_i, max_j = 0, 0
-    for _i in range(0, min(nh*5, h-2*nh), nh):
-        for _j in range(0, min(nw*5, w-2*nw), nw):
+    for _i in range(0, min(nh*n_windows, h-2*nh), nh):
+        for _j in range(0, min(nw*n_windows, w-2*nw), nw):
             # todo: optimize this and add path regularization
+            # todo: try to use a color dictionary instead of gram's matrix
             # get the most interesting patch
-            # TODO: calculate added variance (new point distance to its closest point)
             patch = img[_i:_i+h-2*nh,_j:_j+w-2*nw,:]
             if reference_img is None:
                 img_var = np.var(patch)
@@ -54,7 +55,7 @@ def get_interesting_patch(img, nh, nw, center=True, reference_img=None):
               help='negative prompt')
 @click.option('--margin', '-m', default=0.02, type=float, help='margin size for cropping/zooming')
 @click.option('--n_steps', '-n', default=100, type=int, help='number of images to generate')
-@click.otpion('--use_reference', flag_value=True, help='use reference image to guide where to zoom, o/w zoom to the center')
+@click.option('--use_reference', flag_value=True, help='use reference image to guide where to zoom, o/w zoom to the center')
 @click.option('--min_ds', default=0.4, type=float, help='minimum denoising strength, higher means ignoring image more')
 @click.option('--max_ds', default=0.8, type=float, help='maximum denoising strength, higher means ignoring image more')
 def zoom(output_dir, prompt, negative_prompt, margin, n_steps, use_reference, min_ds, max_ds):
@@ -92,11 +93,6 @@ def zoom(output_dir, prompt, negative_prompt, margin, n_steps, use_reference, mi
                 ratio = img_diffs[-1] / max(img_diffs)
                 if ratio < 0.8:
                     denoising_strength = min(1.2 * denoising_strength, max_ds)
-                    # # add random white spots to img2; maybe later add to latent space
-                    # n = int(30 * (1 - ratio))
-                    # for _ in range(n):
-                    #     x, y = np.random.randint(0, h), np.random.randint(0, w)
-                    #     img2[x:x+nh,y:y+nw,:] = 255
                 if ratio > 1.2:
                     denoising_strength = max(0.8 * denoising_strength, min_ds)
                 img = img2
