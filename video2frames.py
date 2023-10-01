@@ -4,9 +4,8 @@ from lib.utils import video2frames
 
 @click.command()
 @click.option('-i', 'video_path', prompt=True, help='Input video file')
-@click.option('-l', 'loop', default=0, help='Number of loops for gif (default inf)', type=int)
 @click.option('-f', 'n_frames', default=0, help='Number of frames to convert (default all)', type=int)
-def main(video_path, loop, n_frames):
+def main(video_path, n_frames):
     # Load the video file
     frames = video2frames(video_path, n_frames)
 
