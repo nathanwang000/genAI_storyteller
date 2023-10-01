@@ -46,7 +46,7 @@ def get_interesting_patch(img, nh, nw, center=True,
     return img[max_i:max_i+h-2*nh,max_j:max_j+w-2*nw,:]
 
 @click.command()
-@click.option('--output_dir', '-o', default='output/test', help='output directory')
+@click.option('--output_dir', '-o', default='output/zoom', help='output directory')
 @click.option('--prompt', '-p', default='galaxy, stars, cinematic, colorful, mgical girl, hd',
               type=str,
               help='prompt for generating the image')
@@ -54,7 +54,7 @@ def get_interesting_patch(img, nh, nw, center=True,
               type=str,
               help='negative prompt')
 @click.option('--margin', '-m', default=0.02, type=float, help='margin size for cropping/zooming')
-@click.option('--n_steps', '-n', default=100, type=int, help='number of images to generate')
+@click.option('--n_steps', '-n', default=30, type=int, help='number of images to generate')
 @click.option('--use_reference', flag_value=True, help='use reference image to guide where to zoom, o/w zoom to the center')
 @click.option('--min_ds', default=0.4, type=float, help='minimum denoising strength, higher means ignoring image more')
 @click.option('--max_ds', default=0.8, type=float, help='maximum denoising strength, higher means ignoring image more')
@@ -83,19 +83,19 @@ def zoom(output_dir, prompt, negative_prompt, margin, n_steps, use_reference, mi
             # resize img back; resize is float so we need to map back to uint8
             img = (resize(img, desired_size, anti_aliasing=True) * 255).astype(np.uint8)
 
-            if i % 2 == 0:
-                img2 = img2img(prompt, negative_prompt, init_im=img,
-                               denoising_strength=denoising_strength)
+            # generate new image based on the rescaled img
+            img2 = img2img(prompt, negative_prompt, init_im=img,
+                           denoising_strength=denoising_strength)
 
-                # dynamically adjust denoising_strength
-                img_diffs.append((abs(img-img2)).mean())
-                progress_bar.set_description(f'img diff: {img_diffs[-1]:.2f}, denoise: {denoising_strength:.2f}')
-                ratio = img_diffs[-1] / max(img_diffs)
-                if ratio < 0.8:
-                    denoising_strength = min(1.2 * denoising_strength, max_ds)
-                if ratio > 1.2:
-                    denoising_strength = max(0.8 * denoising_strength, min_ds)
-                img = img2
+            # dynamically adjust denoising_strength
+            img_diffs.append((abs(img-img2)).mean())
+            progress_bar.set_description(f'img diff: {img_diffs[-1]:.2f}, denoise: {denoising_strength:.2f}')
+            ratio = img_diffs[-1] / max(img_diffs)
+            if ratio < 0.8:
+                denoising_strength = min(1.2 * denoising_strength, max_ds)
+            if ratio > 1.2:
+                denoising_strength = max(0.8 * denoising_strength, min_ds)
+            img = img2
 
         save_img(img, os.path.join(output_dir, f'{i}.png'))
 
