@@ -2,7 +2,7 @@ import os
 import click
 import tqdm
 import numpy as np
-from lib.utils import txt2img, img2img, save_img
+from lib.utils import txt2img, img2img, save_img, image_enhance
 from skimage.transform import resize
 
 def gram_matrix(im):
@@ -58,7 +58,8 @@ def get_interesting_patch(img, nh, nw, center=True,
 @click.option('--use_reference', flag_value=True, help='use reference image to guide where to zoom, o/w zoom to the center')
 @click.option('--min_ds', default=0.4, type=float, help='minimum denoising strength, higher means ignoring image more')
 @click.option('--max_ds', default=0.8, type=float, help='maximum denoising strength, higher means ignoring image more')
-def zoom(output_dir, prompt, negative_prompt, margin, n_steps, use_reference, min_ds, max_ds):
+@click.option('--enhance', '-e', default=1.0, type=float, help='enhance strength of the image')
+def zoom(output_dir, prompt, negative_prompt, margin, n_steps, use_reference, min_ds, max_ds, enhance):
     os.makedirs(output_dir, exist_ok=True)    
     # prompt = 'bird singing on a tree, hd, cinematic lighting'
     # prompt = 'cyberpunk city, tokyo'
@@ -96,6 +97,11 @@ def zoom(output_dir, prompt, negative_prompt, margin, n_steps, use_reference, mi
             if ratio > 1.2:
                 denoising_strength = max(0.8 * denoising_strength, min_ds)
             img = img2
+
+        if enhance != 1.0:
+            img = image_enhance(img,
+                                contrast_factor=enhance,
+                                color_factor=enhance)
 
         save_img(img, os.path.join(output_dir, f'{i}.png'))
 

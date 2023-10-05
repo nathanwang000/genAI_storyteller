@@ -1,0 +1,35 @@
+# automatic youtube upload
+
+* approach 0
+
+https://github.com/tokland/youtube-upload
+
+Note: client_secrets.json is a file you can download from the developer console, the credentials file is something auto generated after the first time the script is run and the google account sign in is followed, the file is stored at ~/.youtube-upload-credentials.json
+
+* approach 1
+
+https://simple-youtube-api.readthedocs.io/install.html
+
+github: https://github.com/jonnekaunisto/simple-youtube-api/tree/master
+
+use upload.py to upload a video
+
+it creates credentials.storage after 1st authentication
+
+so each time before upload be sure to select the correct video channel credential storage
+
+* approach 2 (preferred approach)
+
+https://github.com/porjo/youtubeuploader
+
+remember to delete request.token each time to upload to a different channel
+
+example usage:
+
+#+BEGIN_SRC bash
+./youtubeuploader_23.04_Darwin_x86_64/youtubeuploader -filename changeme.mp4 -metaJSON upload.json
+#+END_SRC
+
+Before upload, check
+- upload.json is correct
+- make sure request.token is upload to the desired channel

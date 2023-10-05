@@ -9,6 +9,7 @@ import openai, logging
 import tempfile
 import torchvision.transforms.functional as F
 import matplotlib.pyplot as plt
+from PIL import Image, ImageEnhance
 
 from duckduckgo_search import DDGS
 from functools import partial
@@ -279,5 +280,20 @@ class ChatBot:
         # print(completion.usage)
         return completion.choices[0].message.content
     
-
-
+def image_enhance(fn, contrast_factor=1.5, color_factor=1.5):
+    # Open the image
+    if type(fn) is str:
+        img = Image.open(fn)
+    else:
+        img = Image.fromarray(fn)
+    
+    # Enhance the color (saturation)
+    color_enhancer = ImageEnhance.Color(img)
+    img_colored = color_enhancer.enhance(color_factor)
+    
+    # Enhance the contrast
+    contrast_enhancer = ImageEnhance.Contrast(img_colored)
+    img_contrasted = contrast_enhancer.enhance(contrast_factor)
+        
+    # return the enhanced image as a numpy array only preserving the RGB channels
+    return np.array(img_contrasted)[:,:,:3]

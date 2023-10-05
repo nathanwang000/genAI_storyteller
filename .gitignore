@@ -7,3 +7,6 @@ tmp*
 output/
 .DS_Store
 *.gif
+youtube/*.json
+youtube/*.storage
+*.token
