@@ -1,5 +1,7 @@
 # automatic youtube upload
 
+read https://developers.google.com/youtube/v3/docs/videos#status.madeForKids
+
 * approach 0
 
 https://github.com/tokland/youtube-upload

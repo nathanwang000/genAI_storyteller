@@ -1,0 +1,12 @@
+{
+    "title": "Happy Birthday",
+    "description": "Wishing you a happy birthday with a sing-along song! Best wishes!",
+    "tags": ["festive", "birthday"],
+    "privacyStatus": "private",
+    "madeForKids": false,
+    "selfDeclaredMadeForKids": false,
+    "embeddable": true,
+    "publicStatsViewable": true,
+    "playlistTitles":  ["Happy Birthday Festive"],
+    "language":  "en"
+}
