@@ -2,6 +2,11 @@ import cv2
 import os
 import click
 
+def name_sort_criterion(x):
+    try:
+        return int(x.split('.')[0])
+    except:
+        return x
 @click.command()
 @click.option('--inverse_video', '-i',
               help='whether to invert images to loop backwards', is_flag=True, default=False)
@@ -12,7 +17,7 @@ import click
 def create_video(inverse_video, images_folder, output_video_path, fps, image_postfix):
     # Get the list of image filenames in the folder
     image_filenames = sorted([fn for fn in os.listdir(images_folder) if fn.endswith(f'.{image_postfix}')],
-                             key=lambda x: int(x.split('_')[-1].split('.')[0]))
+                             key=name_sort_criterion)
     print(image_filenames)
     if inverse_video:
         print('loop in inverted video order')
