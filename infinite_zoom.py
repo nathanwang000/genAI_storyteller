@@ -59,7 +59,8 @@ def get_interesting_patch(img, nh, nw, center=True,
 @click.option('--min_ds', default=0.4, type=float, help='minimum denoising strength, higher means ignoring image more')
 @click.option('--max_ds', default=0.8, type=float, help='maximum denoising strength, higher means ignoring image more')
 @click.option('--enhance', '-e', default=1.0, type=float, help='enhance strength of the image')
-def zoom(output_dir, prompt, negative_prompt, margin, n_steps, use_reference, min_ds, max_ds, enhance):
+@click.option('--url', '-u', default='http://127.0.0.1:7860', type=str, help='url of the webui stable diffusion server')
+def zoom(output_dir, prompt, negative_prompt, margin, n_steps, use_reference, min_ds, max_ds, enhance, url):
     os.makedirs(output_dir, exist_ok=True)    
     # prompt = 'bird singing on a tree, hd, cinematic lighting'
     # prompt = 'cyberpunk city, tokyo'
@@ -70,7 +71,7 @@ def zoom(output_dir, prompt, negative_prompt, margin, n_steps, use_reference, mi
     progress_bar = tqdm.tqdm(range(n_steps), desc='')
     for i in progress_bar:
         if i == 0:
-            init_img = txt2img(prompt, negative_prompt)
+            init_img = txt2img(prompt, negative_prompt, url=url)
             img = init_img
         else:
             # zoom in img
@@ -86,7 +87,8 @@ def zoom(output_dir, prompt, negative_prompt, margin, n_steps, use_reference, mi
 
             # generate new image based on the rescaled img
             img2 = img2img(prompt, negative_prompt, init_im=img,
-                           denoising_strength=denoising_strength)
+                           denoising_strength=denoising_strength,
+                           url=url)
 
             # dynamically adjust denoising_strength
             img_diffs.append((abs(img-img2)).mean())
